@@ -86,7 +86,7 @@ spec:
             claimName: mtgo-wine-pvc
         - name: dotenv
           secret:
-            secretName: mtgo-env
+            secretName: mtgo-dotenv
             items:
               - key: dotenv
                 path: dotenv

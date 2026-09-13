@@ -89,9 +89,10 @@ Build and load `local/mtgosdk:headless` (from `mtgo-docker`) and `local/meta-sta
 ENV_FILE=/path/to/mtgo-bot/src/.env
 set -a && . "$ENV_FILE" && set +a
 kubectl create namespace mtgo-production --dry-run=client -o yaml | kubectl apply -f -
-kubectl create secret generic mtgo-env \
-  --namespace mtgo-production \
-  --from-env-file "$ENV_FILE" \
-  --from-file "dotenv=${ENV_FILE}" \
-  --from-literal "DATABASE_URL=postgresql+psycopg://${PGUSER}:${PGPASSWORD}@db:5432/${PGDATABASE}"
+TMP_ENV=$(mktemp)
+cp "$ENV_FILE" "$TMP_ENV"
+printf 'DATABASE_URL=postgresql+psycopg://%s:%s@db:5432/%s\n' "$PGUSER" "$PGPASSWORD" "$PGDATABASE" >> "$TMP_ENV"
+kubectl create secret generic mtgo-env --namespace mtgo-production --from-env-file "$TMP_ENV"
+kubectl create secret generic mtgo-dotenv --namespace mtgo-production --from-file "dotenv=${ENV_FILE}"
+rm -f "$TMP_ENV"
 ```
