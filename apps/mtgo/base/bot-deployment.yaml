@@ -18,6 +18,8 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: dentrodoarmario
+      securityContext:
+        fsGroup: 1000
       initContainers:
         - name: wait-for-db
           image: postgres:16
