@@ -31,7 +31,7 @@ spec:
             - name: VERSION
               value: "26.1.2"
             - name: MOTD
-              value: "super hardcore minecraft server para os boys"
+              value: "super hardcore minecraft server para os boys?"
           ports:
             - containerPort: 25565
           volumeMounts:
