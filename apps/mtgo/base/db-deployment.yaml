@@ -42,6 +42,8 @@ spec:
                   key: PGPASSWORD
             - name: TZ
               value: Europe/Lisbon
+            - name: PGHOST
+              value: localhost
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -53,7 +55,7 @@ spec:
               readOnly: true
           readinessProbe:
             exec:
-              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+              command: ["sh", "-c", "pg_isready -h localhost -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
             initialDelaySeconds: 10
             periodSeconds: 10
           resources:

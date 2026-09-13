@@ -29,7 +29,7 @@ spec:
           command:
             - sh
             - -c
-            - until pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+            - until PGHOST=db pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
       containers:
         - name: mtgobot
           image: local/mtgosdk:headless
