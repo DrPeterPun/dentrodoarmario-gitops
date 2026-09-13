@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-batalhanaval
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: minecraft-batalhanaval
+  template:
+    metadata:
+      labels:
+        app: minecraft-batalhanaval
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      containers:
+        - name: mc
+          image: itzg/minecraft-server:latest
+          stdin: true
+          tty: true
+          env:
+            - name: EULA
+              value: "true"
+            - name: TYPE
+              value: "FABRIC"
+            - name: MEMORY
+              value: "6G"
+            - name: VERSION
+              value: "26.1.2"
+            - name: MOTD
+              value: "super hardcore minecraft server para os boys"
+          ports:
+            - containerPort: 25565
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "6Gi"
+            limits:
+              memory: "7Gi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minecraft-batalhanaval-pvc

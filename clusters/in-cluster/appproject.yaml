@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dentrodoarmario
+  namespace: argocd
+spec:
+  description: Applications managed from this GitOps repository
+  sourceRepos:
+    - https://github.com/DrPeterPun/dentrodoarmario-gitops.git
+  destinations:
+    - namespace: "*-staging"
+      server: https://kubernetes.default.svc
+    - namespace: "*-production"
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: ""
+      kind: PersistentVolume
+    - group: storage.k8s.io
+      kind: StorageClass
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

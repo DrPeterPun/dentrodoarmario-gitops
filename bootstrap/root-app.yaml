@@ -1,0 +1,21 @@
+# Apply this once after Argo CD is installed. From then on, Git is the source of truth.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/DrPeterPun/dentrodoarmario-gitops.git
+    targetRevision: HEAD
+    path: clusters/in-cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
