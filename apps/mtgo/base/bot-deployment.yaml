@@ -30,6 +30,34 @@ spec:
             - sh
             - -c
             - until PGHOST=db pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+        - name: seed-wine
+          image: local/mtgosdk:headless
+          command:
+            - bash
+            - -lc
+            - |
+              set -euo pipefail
+              if [ ! -d /persist/drive_c ]; then
+                echo "Seeding Wine prefix from image"
+                cp -a /home/wine/.wine/. /persist/
+              fi
+              if [ ! -e /persist/drive_c/dotnet/dotnet.exe ]; then
+                echo "Copying Windows .NET SDK into the Wine prefix"
+                mkdir -p /persist/drive_c
+                cp -a /home/wine/.wine/drive_c/dotnet /persist/drive_c/
+              fi
+          volumeMounts:
+            - name: wine
+              mountPath: /persist
+        - name: fetch-mtgosdk
+          image: python:3.12-alpine
+          command: ["python", "/scripts/fetch-mtgosdk.py"]
+          volumeMounts:
+            - name: sdk
+              mountPath: /MTGOSDK
+            - name: fetch-script
+              mountPath: /scripts
+              readOnly: true
       containers:
         - name: mtgobot
           image: local/mtgosdk:headless
@@ -37,6 +65,7 @@ spec:
           stdin: true
           tty: true
           workingDir: /workspace
+          command: ["/usr/local/bin/xvfb-entrypoint.sh"]
           args: ["wine-run", "src/MTGOBot.csproj"]
           envFrom:
             - secretRef:
@@ -94,3 +123,7 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 2Gi
+        - name: fetch-script
+          configMap:
+            name: mtgo-fetch-sdk
+            defaultMode: 0755

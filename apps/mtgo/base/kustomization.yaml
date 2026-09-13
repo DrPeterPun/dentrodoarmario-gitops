@@ -21,13 +21,18 @@ configMapGenerator:
       - schema.sql
     options:
       disableNameSuffixHash: true
+  - name: mtgo-fetch-sdk
+    files:
+      - fetch-mtgosdk.py
+    options:
+      disableNameSuffixHash: true
 images:
   - name: postgres
     newName: postgres
     newTag: "16"
   - name: local/mtgosdk
-    newName: local/mtgosdk
+    newName: videreproject/mtgosdk
     newTag: headless
   - name: local/meta-stats
-    newName: local/meta-stats
+    newName: ghcr.io/mtgometastats/meta-stats
     newTag: latest

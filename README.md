@@ -53,9 +53,9 @@ Edit the overlay (or base env values) and merge. Typical changes:
 Or run **Actions → Update image tag** with:
 
 - app `batalha-naval` or `disney-bros`, environment `production`, image `itzg/minecraft-server`, and a tag such as `java21`
-- app `mtgo`, environment `production`, image `local/mtgosdk` (bot) or `local/meta-stats` (web + scheduler)
+- app `mtgo`, environment `production`, image `local/mtgosdk` (bot) or `local/meta-stats` (web + scheduler), optional `newName` such as `videreproject/mtgosdk` or `ghcr.io/mtgometastats/meta-stats`
 
-Application repos can also fire `repository_dispatch` type `update-image` with `app`, `environment`, `image`, and `tag`. That is how mtgo-bot / meta-stats CI should roll a new build into this cluster.
+Application repos fire `repository_dispatch` type `update-image` with `app`, `environment`, `image`, `tag`, and optional `newName`. Set a `GITOPS_TOKEN` secret in those repos (a PAT that can dispatch this repository) so a commit rebuilds the image and rolls the overlay.
 
 ## Validate locally
 
@@ -67,14 +67,16 @@ kubectl kustomize apps/mtgo/overlays/production
 
 ## MTGO stack
 
-Four compose services from `mtgo-bot/docker-compose.yml`, one Argo CD app so they share namespace `mtgo-production` and the hostname `db`. Images stay `local/*` (they are built on the node, not published).
+Four compose services from `mtgo-bot/docker-compose.yml`, one Argo CD app so they share namespace `mtgo-production` and the hostname `db`.
+
+The bot used to reference `local/mtgosdk:headless` because an older .NET 10 preview SDK was not in the public image. Upstream `videreproject/mtgosdk:headless` now ships a released .NET 10 SDK, so Kubernetes can pull it. `meta-stats` and a baked `mtgo-bot` image are published to GHCR by app-repo CI.
 
 | Deploy | Image | Role |
 |---|---|---|
 | `mtgo-db` | `postgres:16` | Postgres; `schema.sql` is mounted into `docker-entrypoint-initdb.d` for first boot |
-| `mtgo-bot` | `local/mtgosdk:headless` | `wine-run src/MTGOBot.csproj` under Wine/Xvfb |
-| `mtgo-web` | `local/meta-stats:latest` | `uv run uvicorn app.web.main:app` on LAN `192.168.1.101:8000` |
-| `mtgo-scheduler` | `local/meta-stats:latest` | `uv run python -m app.scheduler.main` |
+| `mtgo-bot` | `videreproject/mtgosdk:headless` (until mtgo-bot CI publishes `ghcr.io/mtgometastats/mtgo-bot`) | `wine-run src/MTGOBot.csproj` under Wine/Xvfb |
+| `mtgo-web` | `ghcr.io/mtgometastats/meta-stats:latest` | `uv run uvicorn app.web.main:app` on LAN `192.168.1.101:8000` |
+| `mtgo-scheduler` | `ghcr.io/mtgometastats/meta-stats:latest` | `uv run python -m app.scheduler.main` |
 
 Create these host paths on `dentrodoarmario` before the first sync:
 
@@ -83,7 +85,9 @@ Create these host paths on `dentrodoarmario` before the first sync:
 - `/home/serverino/mtgo-sdk` — `MTGOSDK` drop folder (mounted at `/MTGOSDK`)
 - `/home/serverino/mtgo-wine` — Wine prefix
 
-Build and load `local/mtgosdk:headless` (from `mtgo-docker`) and `local/meta-stats:latest` (from `meta-stats/Dockerfile`) onto that node. Then create the Secret from `mtgo-bot/src/.env` — do not commit it. The file uses `PGUSER` / `PGPASSWORD` / `PGDATABASE`; the Secret also needs `DATABASE_URL` and a `dotenv` copy of the file for `DotEnv.LoadFile()`:
+An init container fetches `MTGOSDK` NuGet packages onto `/home/serverino/mtgo-sdk`, and another seeds `C:\dotnet` into the Wine prefix if that volume is empty.
+
+Then create the Secret from `mtgo-bot/src/.env` — do not commit it. The file uses `PGUSER` / `PGPASSWORD` / `PGDATABASE`; the Secret also needs `DATABASE_URL` and a `dotenv` copy of the file for `DotEnv.LoadFile()`:
 
 ```bash
 ENV_FILE=/path/to/mtgo-bot/src/.env

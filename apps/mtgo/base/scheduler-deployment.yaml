@@ -29,7 +29,7 @@ spec:
       containers:
         - name: scheduler
           image: local/meta-stats:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command: ["uv", "run", "python", "-m", "app.scheduler.main"]
           envFrom:
             - secretRef:

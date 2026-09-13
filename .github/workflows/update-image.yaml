@@ -21,6 +21,9 @@ on:
       tag:
         description: New image tag
         required: true
+      newName:
+        description: Optional replacement image name (registry/repo)
+        required: false
   repository_dispatch:
     types: [update-image]
 
@@ -47,17 +50,26 @@ jobs:
             echo "environment=${{ github.event.client_payload.environment }}" >> "$GITHUB_OUTPUT"
             echo "image=${{ github.event.client_payload.image }}" >> "$GITHUB_OUTPUT"
             echo "tag=${{ github.event.client_payload.tag }}" >> "$GITHUB_OUTPUT"
+            echo "newName=${{ github.event.client_payload.newName }}" >> "$GITHUB_OUTPUT"
           else
             echo "app=${{ inputs.app }}" >> "$GITHUB_OUTPUT"
             echo "environment=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
             echo "image=${{ inputs.image }}" >> "$GITHUB_OUTPUT"
             echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "newName=${{ inputs.newName }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set image in overlay
         working-directory: apps/${{ steps.inputs.outputs.app }}/overlays/${{ steps.inputs.outputs.environment }}
         run: |
-          kustomize edit set image "${{ steps.inputs.outputs.image }}=${{ steps.inputs.outputs.image }}:${{ steps.inputs.outputs.tag }}"
+          image='${{ steps.inputs.outputs.image }}'
+          tag='${{ steps.inputs.outputs.tag }}'
+          new_name='${{ steps.inputs.outputs.newName }}'
+          if [ -n "$new_name" ]; then
+            kustomize edit set image "${image}=${new_name}:${tag}"
+          else
+            kustomize edit set image "${image}=${image}:${tag}"
+          fi
           kustomize build .
 
       - name: Commit and push
