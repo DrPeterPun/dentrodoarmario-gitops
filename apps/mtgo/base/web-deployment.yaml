@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtgo-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mtgo-web
+  template:
+    metadata:
+      labels:
+        app: mtgo-web
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          command:
+            - sh
+            - -c
+            - until pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+      containers:
+        - name: web
+          image: local/meta-stats:latest
+          imagePullPolicy: IfNotPresent
+          command: ["uv", "run", "uvicorn", "app.web.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          env:
+            - name: SCHEDULER_TIMEZONE
+              value: UTC
+            - name: PGHOST
+              value: db
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mtgo-env
+                  key: DATABASE_URL
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "1Gi"

@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtgo-bot
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mtgo-bot
+  template:
+    metadata:
+      labels:
+        app: mtgo-bot
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/mtgobot: unconfined
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          command:
+            - sh
+            - -c
+            - until pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+      containers:
+        - name: mtgobot
+          image: local/mtgosdk:headless
+          imagePullPolicy: IfNotPresent
+          stdin: true
+          tty: true
+          workingDir: /workspace
+          args: ["wine-run", "src/MTGOBot.csproj"]
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          env:
+            - name: MTGOSDK_PATH
+              value: /MTGOSDK
+            - name: DISPLAY
+              value: ":99"
+            - name: WINEDEBUG
+              value: "-all"
+            - name: ALSA_LOG_LEVEL
+              value: "0"
+            - name: TZ
+              value: Europe/Lisbon
+            - name: PGHOST
+              value: db
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+            - name: sdk
+              mountPath: /MTGOSDK
+            - name: wine
+              mountPath: /home/wine/.wine
+            - name: dotenv
+              mountPath: /workspace/src/.env
+              subPath: dotenv
+              readOnly: true
+            - name: dshm
+              mountPath: /dev/shm
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              memory: "1Gi"
+            limits:
+              memory: "3Gi"
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: mtgo-bot-pvc
+        - name: sdk
+          persistentVolumeClaim:
+            claimName: mtgo-sdk-pvc
+        - name: wine
+          persistentVolumeClaim:
+            claimName: mtgo-wine-pvc
+        - name: dotenv
+          secret:
+            secretName: mtgo-env
+            items:
+              - key: dotenv
+                path: dotenv
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi

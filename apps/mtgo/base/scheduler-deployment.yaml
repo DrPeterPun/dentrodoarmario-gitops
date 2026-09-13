@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtgo-scheduler
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mtgo-scheduler
+  template:
+    metadata:
+      labels:
+        app: mtgo-scheduler
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          command:
+            - sh
+            - -c
+            - until pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+      containers:
+        - name: scheduler
+          image: local/meta-stats:latest
+          imagePullPolicy: IfNotPresent
+          command: ["uv", "run", "python", "-m", "app.scheduler.main"]
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          env:
+            - name: SCHEDULER_TIMEZONE
+              value: UTC
+            - name: PGHOST
+              value: db
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mtgo-env
+                  key: DATABASE_URL
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "1Gi"
