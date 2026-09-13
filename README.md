@@ -26,9 +26,14 @@ Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens o
 
 ## Bootstrap
 
+Use server-side apply for the Argo CD install. The ApplicationSet CRD is larger than
+kubectl's client-side `last-applied-configuration` annotation limit (256KiB), so a
+plain `kubectl apply -k` can leave Argo CD running without `applicationsets.argoproj.io`.
+
 ```bash
-kubectl apply -k bootstrap/argo-cd
+kubectl apply --server-side -k bootstrap/argo-cd
 kubectl wait --for=condition=Available -n argocd deployment/argocd-server --timeout=180s
+kubectl wait --for=condition=Available -n argocd deployment/argocd-applicationset-controller --timeout=180s
 kubectl apply -f bootstrap/root-app.yaml
 ```
 
