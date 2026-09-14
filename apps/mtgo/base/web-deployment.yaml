@@ -27,7 +27,7 @@ spec:
       containers:
         - name: web
           image: local/meta-stats:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["uv", "run", "uvicorn", "app.web.main:app", "--host", "0.0.0.0", "--port", "8000"]
           envFrom:
             - secretRef:

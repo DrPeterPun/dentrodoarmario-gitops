@@ -34,5 +34,5 @@ images:
     newName: videreproject/mtgosdk
     newTag: headless
   - name: local/meta-stats
-    newName: ghcr.io/mtgometastats/meta-stats
+    newName: local/meta-stats
     newTag: latest
