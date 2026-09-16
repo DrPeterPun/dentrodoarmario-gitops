@@ -7,8 +7,8 @@ images:
   newName: ghcr.io/mtgometastats/meta-stats
   newTag: 1e55054d0d151304884e467fbe18e68affb07a82
 - name: local/mtgosdk
-  newName: videreproject/mtgosdk
-  newTag: headless
+  newName: ghcr.io/mtgometastats/mtgo-bot
+  newTag: 38e4d3b85bd0d01391afd3d940d14328de9779bd
 - name: postgres
   newName: postgres
   newTag: "16"
