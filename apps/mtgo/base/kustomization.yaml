@@ -11,6 +11,8 @@ resources:
   - wine-pvc.yaml
   - sdk-pv.yaml
   - sdk-pvc.yaml
+  - card-images-pv.yaml
+  - card-images-pvc.yaml
   - bot-deployment.yaml
   - web-deployment.yaml
   - web-service.yaml

@@ -4,6 +4,8 @@ metadata:
   name: mtgo-web
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: mtgo-web
@@ -42,6 +44,11 @@ spec:
                 secretKeyRef:
                   name: mtgo-env
                   key: DATABASE_URL
+            - name: CARD_IMAGE_DIR
+              value: /data/card-images
+          volumeMounts:
+            - name: card-images
+              mountPath: /data/card-images
           ports:
             - containerPort: 8000
           readinessProbe:
@@ -55,3 +62,7 @@ spec:
               memory: "256Mi"
             limits:
               memory: "1Gi"
+      volumes:
+        - name: card-images
+          persistentVolumeClaim:
+            claimName: mtgo-card-images-pvc
