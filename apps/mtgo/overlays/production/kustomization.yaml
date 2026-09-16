@@ -1,14 +1,17 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- ../../base
+  - ../../base
 images:
-- name: local/meta-stats
-  newName: ghcr.io/mtgometastats/meta-stats
-  newTag: 1e55054d0d151304884e467fbe18e68affb07a82
-- name: local/mtgosdk
-  newName: ghcr.io/mtgometastats/mtgo-bot
-  newTag: 38e4d3b85bd0d01391afd3d940d14328de9779bd
-- name: postgres
-  newName: postgres
-  newTag: "16"
+  # Private ghcr.io/mtgometastats/* packages cannot be pulled (private
+  # source repos, no imagePullSecrets). Use images the node already has
+  # or that are public.
+  - name: postgres
+    newName: postgres
+    newTag: "16"
+  - name: local/mtgosdk
+    newName: videreproject/mtgosdk
+    newTag: headless
+  - name: local/meta-stats
+    newName: local/meta-stats
+    newTag: latest
