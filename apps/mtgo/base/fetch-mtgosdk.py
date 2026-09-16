@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 
 # Keep in lockstep with mtgo-bot/src/packages.lock.json
-VERSION = "1.2.1.20260222"
+VERSION = "1.7.0.20260903"
 PACKAGES = ["MTGOSDK", "MTGOSDK.MSBuild", "MTGOSDK.Win32"]
 OUTPUT_DIR = Path("/MTGOSDK/packages")
 FLAT = "https://api.nuget.org/v3-flatcontainer"
