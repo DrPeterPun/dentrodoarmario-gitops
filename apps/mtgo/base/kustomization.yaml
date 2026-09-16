@@ -30,9 +30,3 @@ images:
   - name: postgres
     newName: postgres
     newTag: "16"
-  - name: local/mtgosdk
-    newName: videreproject/mtgosdk
-    newTag: headless
-  - name: local/meta-stats
-    newName: local/meta-stats
-    newTag: latest
