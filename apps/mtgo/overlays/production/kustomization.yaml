@@ -5,7 +5,7 @@ resources:
 images:
 - name: local/meta-stats
   newName: ghcr.io/mtgometastats/meta-stats
-  newTag: 636413b1bbd4b109ae2f8badff3f6fb66f932c10
+  newTag: 1e55054d0d151304884e467fbe18e68affb07a82
 - name: local/mtgosdk
   newName: videreproject/mtgosdk
   newTag: headless
