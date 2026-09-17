@@ -13,7 +13,7 @@ patches:
 images:
 - name: local/meta-stats
   newName: ghcr.io/mtgometastats/meta-stats
-  newTag: a064a4a6405ec12cb3b4fc79e252a60223ca2244
+  newTag: c16c7d5b0339ec0b7cc16a9d2b40c2bf530f15eb
 - name: local/mtgosdk
   newName: ghcr.io/mtgometastats/mtgo-bot
   newTag: dbfeb12d655a5131851a72143d337edc4ff37760
