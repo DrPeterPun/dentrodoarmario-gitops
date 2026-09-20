@@ -31,7 +31,9 @@ spec:
             # to a DDNS name or 192.168.1.101 if detection is wrong.
             - name: SERVERURL
               value: auto
-            # 41820 stays under the MEO GR141IG UDP forward cap (≤49999).
+            # Advertised WAN port (MEO GR141IG UDP forwards cap at 49999).
+            # The process still listens on 51820 inside the pod; the router
+            # must map UDP 41820 -> 192.168.1.101:51820.
             - name: SERVERPORT
               value: "41820"
             - name: PEERS
@@ -49,7 +51,7 @@ spec:
               value: "false"
           ports:
             - name: wireguard
-              containerPort: 41820
+              containerPort: 51820
               protocol: UDP
           securityContext:
             capabilities:
