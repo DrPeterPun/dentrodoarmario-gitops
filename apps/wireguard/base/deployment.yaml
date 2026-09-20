@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: wireguard
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: wireguard
+          image: lscr.io/linuxserver/wireguard:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Lisbon
+            # auto = detect WAN IP for client Endpoint. Override in the overlay
+            # to a DDNS name or 192.168.1.101 if detection is wrong.
+            - name: SERVERURL
+              value: auto
+            - name: SERVERPORT
+              value: "51820"
+            - name: PEERS
+              value: laptop,phone
+            - name: PEERDNS
+              value: auto
+            - name: INTERNAL_SUBNET
+              value: 10.13.13.0
+            # Split tunnel: WireGuard net + LAN (Minecraft, MTGO, node IP).
+            - name: ALLOWEDIPS
+              value: 10.13.13.0/24,192.168.1.0/24
+            - name: PERSISTENTKEEPALIVE_PEERS
+              value: all
+            - name: LOG_CONFS
+              value: "false"
+          ports:
+            - name: wireguard
+              containerPort: 51820
+              protocol: UDP
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+                - SYS_MODULE
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: modules
+              mountPath: /lib/modules
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          startupProbe:
+            exec:
+              command: ["wg", "show", "wg0"]
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            exec:
+              command: ["wg", "show", "wg0"]
+            periodSeconds: 10
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: wireguard-config-pvc
+        - name: modules
+          hostPath:
+            path: /lib/modules
+            type: Directory

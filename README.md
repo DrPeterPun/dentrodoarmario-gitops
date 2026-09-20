@@ -14,6 +14,9 @@ apps/disney-bros/
 apps/mtgo/
   base/                    # db, bot, web, scheduler
   overlays/production/
+apps/wireguard/
+  base/                    # UDP 51820 VPN gateway
+  overlays/production/
 ```
 
 ApplicationSet creates one Application per overlay:
@@ -23,10 +26,11 @@ ApplicationSet creates one Application per overlay:
 | `apps/batalha-naval/overlays/production` | `batalha-naval-production` | `batalha-naval-production` |
 | `apps/disney-bros/overlays/production` | `disney-bros-production` | `disney-bros-production` |
 | `apps/mtgo/overlays/production` | `mtgo-production` | `mtgo-production` |
+| `apps/wireguard/overlays/production` | `wireguard-production` | `wireguard-production` |
 
 There is no staging overlay. Each world is bound to a host path on node `dentrodoarmario` (`/home/serverino/mc_batalhanaval` and `/home/serverino/mc_disneybros`). A second environment would need different disks and a different LAN port/IP.
 
-Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`.
+Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. WireGuard listens on `192.168.1.101:51820/udp` so remote clients can reach those LAN addresses; see [apps/wireguard/README.md](apps/wireguard/README.md).
 
 ## Bootstrap
 
@@ -63,6 +67,7 @@ Application repos fire `repository_dispatch` type `update-image` with `app`, `en
 kubectl kustomize apps/batalha-naval/overlays/production
 kubectl kustomize apps/disney-bros/overlays/production
 kubectl kustomize apps/mtgo/overlays/production
+kubectl kustomize apps/wireguard/overlays/production
 ```
 
 ## MTGO stack
@@ -80,6 +85,7 @@ The bot used to reference `local/mtgosdk:headless` because an older .NET 10 prev
 
 Create these host paths on `dentrodoarmario` before the first sync:
 
+- `/home/serverino/wireguard` — WireGuard keys and peer configs (`chown 1000:1000`)
 - `/home/serverino/mtgo-postgres` — Postgres data
 - `/home/serverino/mtgo-bot` — checkout of `mtgo-bot` (mounted at `/workspace`)
 - `/home/serverino/mtgo-sdk` — `MTGOSDK` drop folder (mounted at `/MTGOSDK`)
