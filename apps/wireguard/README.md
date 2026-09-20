@@ -6,8 +6,8 @@ Argo CD deploys this overlay as Application `wireguard-production` in namespace 
 
 | | |
 |---|---|
-| UDP listen (LAN) | `192.168.1.101:51820` |
-| UDP WAN (clients) | `minecraft.pbpereira.pt:41820` (router maps 41820 → 51820) |
+| UDP listen (LAN) | `192.168.1.101:41820` |
+| UDP WAN (clients) | `minecraft.pbpereira.pt:41820` (router maps 41820 → 41820) |
 | Tunnel subnet | `10.13.13.0/24` |
 | Split tunnel | `10.13.13.0/24` and `192.168.1.0/24` (not all Internet traffic) |
 | Seeded peers | `laptop`, `phone` |
@@ -24,7 +24,7 @@ sudo mkdir -p /home/serverino/wireguard
 sudo chown 1000:1000 /home/serverino/wireguard
 ```
 
-If clients will connect from the Internet, on the MEO GR141IG forward **UDP 41820 → 192.168.1.101:51820**. That router rejects UDP *external* ports above 49999, so the WAN port cannot be 51820; the process still listens on 51820 on the node. Client Endpoint uses DDNS `minecraft.pbpereira.pt:41820`. If that hostname changes, update `SERVERURL` in `apps/wireguard/base/deployment.yaml`, merge, and let Argo CD roll the pod (existing peer keys are kept; only confs regenerate).
+If clients will connect from the Internet, on the MEO GR141IG forward **UDP 41820 → 192.168.1.101:41820**. That router rejects UDP *external* ports above 49999, so the default WireGuard port 51820 cannot be the WAN mapping. Client Endpoint uses DDNS `minecraft.pbpereira.pt:41820`. If that hostname changes, update `SERVERURL` in `apps/wireguard/base/deployment.yaml`, merge, and let Argo CD roll the pod (existing peer keys are kept; only confs regenerate).
 
 ## Fetch a client config
 
@@ -52,7 +52,7 @@ Treat those files as secrets. Do not commit them.
 
 1. Install [WireGuard](https://www.wireguard.com/install/) (Windows / macOS / Linux / iOS / Android).
 2. Import `peer_laptop.conf` or `peer_phone.conf` (or scan the QR code).
-3. Off-LAN Endpoint is `minecraft.pbpereira.pt:41820`. On-LAN you can use `192.168.1.101:51820`.
+3. Endpoint is `minecraft.pbpereira.pt:41820` (on-LAN, `192.168.1.101:41820` also works).
 4. Activate the tunnel.
 
 You should then reach:
