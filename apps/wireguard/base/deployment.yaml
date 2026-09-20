@@ -29,9 +29,7 @@ spec:
               value: Europe/Lisbon
             - name: SERVERURL
               value: minecraft.pbpereira.pt
-            # Advertised WAN port (MEO GR141IG UDP forwards cap at 49999).
-            # The process still listens on 51820 inside the pod; the router
-            # must map UDP 41820 -> 192.168.1.101:51820.
+            # WAN and LAN listen port. MEO GR141IG UDP forwards cap at 49999.
             - name: SERVERPORT
               value: "41820"
             - name: PEERS
@@ -49,7 +47,7 @@ spec:
               value: "false"
           ports:
             - name: wireguard
-              containerPort: 51820
+              containerPort: 41820
               protocol: UDP
           securityContext:
             capabilities:
@@ -60,6 +58,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+            - name: custom-init
+              mountPath: /custom-cont-init.d
             - name: modules
               mountPath: /lib/modules
               readOnly: true
@@ -83,6 +83,10 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: wireguard-config-pvc
+        - name: custom-init
+          configMap:
+            name: wireguard-custom-init
+            defaultMode: 0755
         - name: modules
           hostPath:
             path: /lib/modules

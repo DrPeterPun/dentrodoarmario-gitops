@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - pv.yaml
   - pvc.yaml
+  - custom-init-configmap.yaml
   - deployment.yaml
   - service.yaml
 images:
