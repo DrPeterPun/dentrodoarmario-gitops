@@ -27,10 +27,8 @@ spec:
               value: "1000"
             - name: TZ
               value: Europe/Lisbon
-            # auto = detect WAN IP for client Endpoint. Override in the overlay
-            # to a DDNS name or 192.168.1.101 if detection is wrong.
             - name: SERVERURL
-              value: auto
+              value: minecraft.pbpereira.pt
             # Advertised WAN port (MEO GR141IG UDP forwards cap at 49999).
             # The process still listens on 51820 inside the pod; the router
             # must map UDP 41820 -> 192.168.1.101:51820.
