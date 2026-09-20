@@ -15,7 +15,7 @@ apps/mtgo/
   base/                    # db, bot, web, scheduler
   overlays/production/
 apps/wireguard/
-  base/                    # UDP 51820 VPN gateway
+  base/                    # UDP 41820 VPN gateway
   overlays/production/
 ```
 
@@ -30,7 +30,7 @@ ApplicationSet creates one Application per overlay:
 
 There is no staging overlay. Each world is bound to a host path on node `dentrodoarmario` (`/home/serverino/mc_batalhanaval` and `/home/serverino/mc_disneybros`). A second environment would need different disks and a different LAN port/IP.
 
-Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. WireGuard listens on `192.168.1.101:51820/udp` so remote clients can reach those LAN addresses; see [apps/wireguard/README.md](apps/wireguard/README.md).
+Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. WireGuard listens on `192.168.1.101:41820/udp` so remote clients can reach those LAN addresses; see [apps/wireguard/README.md](apps/wireguard/README.md).
 
 ## Bootstrap
 

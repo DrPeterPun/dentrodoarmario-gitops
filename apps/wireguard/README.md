@@ -6,7 +6,7 @@ Argo CD deploys this overlay as Application `wireguard-production` in namespace 
 
 | | |
 |---|---|
-| UDP listen | `192.168.1.101:51820` |
+| UDP listen | `192.168.1.101:41820` |
 | Tunnel subnet | `10.13.13.0/24` |
 | Split tunnel | `10.13.13.0/24` and `192.168.1.0/24` (not all Internet traffic) |
 | Seeded peers | `laptop`, `phone` |
@@ -23,7 +23,7 @@ sudo mkdir -p /home/serverino/wireguard
 sudo chown 1000:1000 /home/serverino/wireguard
 ```
 
-If clients will connect from the Internet, forward **UDP 51820** on the router to `192.168.1.101`. If `SERVERURL=auto` picks the wrong Endpoint (CGNAT, etc.), set it in `apps/wireguard/base/deployment.yaml` to a DDNS name or your public IP, merge, and let Argo CD roll the pod (existing peer keys are kept; only confs regenerate).
+If clients will connect from the Internet, forward **UDP 41820** on the router to `192.168.1.101`. The MEO GR141IG rejects UDP forwards above 49999 (so the default WireGuard port 51820 cannot be used). If `SERVERURL=auto` picks the wrong Endpoint (CGNAT, etc.), set it in `apps/wireguard/base/deployment.yaml` to a DDNS name or your public IP, merge, and let Argo CD roll the pod (existing peer keys are kept; only confs regenerate).
 
 ## Fetch a client config
 
@@ -51,7 +51,7 @@ Treat those files as secrets. Do not commit them.
 
 1. Install [WireGuard](https://www.wireguard.com/install/) (Windows / macOS / Linux / iOS / Android).
 2. Import `peer_laptop.conf` or `peer_phone.conf` (or scan the QR code).
-3. If you are off-LAN and the Endpoint is still `192.168.1.101`, edit it to `YOUR_PUBLIC_DNS_OR_IP:51820`.
+3. If you are off-LAN and the Endpoint is still `192.168.1.101`, edit it to `YOUR_PUBLIC_DNS_OR_IP:41820`.
 4. Activate the tunnel.
 
 You should then reach:
