@@ -31,8 +31,9 @@ spec:
             # to a DDNS name or 192.168.1.101 if detection is wrong.
             - name: SERVERURL
               value: auto
+            # 41820 stays under the MEO GR141IG UDP forward cap (≤49999).
             - name: SERVERPORT
-              value: "51820"
+              value: "41820"
             - name: PEERS
               value: laptop,phone
             - name: PEERDNS
@@ -48,7 +49,7 @@ spec:
               value: "false"
           ports:
             - name: wireguard
-              containerPort: 51820
+              containerPort: 41820
               protocol: UDP
           securityContext:
             capabilities:
