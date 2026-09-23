@@ -64,6 +64,8 @@ spec:
               value: "true"
             - name: RESOLUTION
               value: 1280x1024x24
+            - name: MTGO_ALIVE_LOG
+              value: /var/log/mtgo/mtgo-alive.log
           volumeMounts:
             - name: sdk
               mountPath: /MTGOSDK
@@ -73,6 +75,8 @@ spec:
               readOnly: true
             - name: dshm
               mountPath: /dev/shm
+            - name: alive-log
+              mountPath: /var/log/mtgo
           securityContext:
             privileged: true
           resources:
@@ -94,6 +98,9 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 2Gi
+        - name: alive-log
+          persistentVolumeClaim:
+            claimName: mtgo-logs-pvc
         - name: fetch-script
           configMap:
             name: mtgo-fetch-sdk

@@ -13,6 +13,8 @@ resources:
   - sdk-pvc.yaml
   - card-images-pv.yaml
   - card-images-pvc.yaml
+  - logs-pv.yaml
+  - logs-pvc.yaml
   - bot-deployment.yaml
   - web-deployment.yaml
   - web-service.yaml
