@@ -7,10 +7,10 @@ images:
     newName: itzg/minecraft-server
     newTag: latest
 patches:
-  - target: 
+  - target:
       kind: Deployment
       name: minecraft-batalhanaval
-    patch: 
+    patch: |-
       - op: replace
         path: /spec/replicas
         value: 0
