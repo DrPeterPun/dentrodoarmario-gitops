@@ -6,7 +6,7 @@ images:
   - name: itzg/minecraft-server
     newName: itzg/minecraft-server
     newTag: latest
-patch:
+patches:
   - target: 
       kind: Deployment
       name: minecraft-batalhanaval
