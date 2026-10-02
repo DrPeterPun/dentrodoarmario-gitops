@@ -84,6 +84,18 @@ spec:
               memory: "1Gi"
             limits:
               memory: "8Gi"
+          startupProbe:
+            exec:
+              command: ["bash", "/workspace/scripts/mtgo-alive.sh"]
+            periodSeconds: 300
+            timeoutSeconds: 30
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["bash", "/workspace/scripts/mtgo-alive.sh"]
+            periodSeconds: 300
+            timeoutSeconds: 30
+            failureThreshold: 2
       volumes:
         - name: sdk
           persistentVolumeClaim:
