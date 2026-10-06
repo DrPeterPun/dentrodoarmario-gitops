@@ -14,6 +14,9 @@ apps/disney-bros/
 apps/mtgo/
   base/                    # db, bot, web, scheduler
   overlays/production/
+apps/second-star/
+  base/                    # postgres, merlin API, encanto web
+  overlays/production/
 apps/wireguard/
   base/                    # UDP 41820 VPN gateway
   overlays/production/
@@ -26,11 +29,12 @@ ApplicationSet creates one Application per overlay:
 | `apps/batalha-naval/overlays/production` | `batalha-naval-production` | `batalha-naval-production` |
 | `apps/disney-bros/overlays/production` | `disney-bros-production` | `disney-bros-production` |
 | `apps/mtgo/overlays/production` | `mtgo-production` | `mtgo-production` |
+| `apps/second-star/overlays/production` | `second-star-production` | `second-star-production` |
 | `apps/wireguard/overlays/production` | `wireguard-production` | `wireguard-production` |
 
 There is no staging overlay. Each world is bound to a host path on node `dentrodoarmario` (`/home/serverino/mc_batalhanaval` and `/home/serverino/mc_disneybros`). A second environment would need different disks and a different LAN port/IP.
 
-Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
+Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. Second Star serves the web UI on `192.168.1.101:8088` and the API on `192.168.1.101:3010`. WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
 
 ## Bootstrap
 
@@ -59,7 +63,7 @@ Or run **Actions → Update image tag** with:
 - app `batalha-naval` or `disney-bros`, environment `production`, image `itzg/minecraft-server`, and a tag such as `java21`
 - app `mtgo`, environment `production`, image `local/mtgosdk` (bot) or `local/meta-stats` (web + scheduler), optional `newName` such as `videreproject/mtgosdk` or `ghcr.io/mtgometastats/meta-stats`
 
-Application repos fire `repository_dispatch` type `update-image` with `app`, `environment`, `image`, `tag`, and optional `newName`. Set a `GITOPS_TOKEN` secret in those repos (a PAT that can dispatch this repository) so a commit rebuilds the image and rolls the overlay.
+Application repos fire `repository_dispatch` type `update-image` with `app`, `environment`, `image`, `tag`, and optional `newName`. A `client_payload.images` array updates several images in one commit. Set a `GITOPS_TOKEN` secret in those repos (a PAT that can dispatch this repository) so a commit rebuilds the image and rolls the overlay.
 
 ## Validate locally
 
@@ -68,6 +72,7 @@ kubectl kustomize apps/batalha-naval/overlays/production
 kubectl kustomize apps/disney-bros/overlays/production
 kubectl kustomize apps/mtgo/overlays/production
 kubectl kustomize apps/wireguard/overlays/production
+kubectl kustomize apps/second-star/overlays/production
 ```
 
 ## MTGO stack
@@ -106,3 +111,35 @@ kubectl create secret generic mtgo-env --namespace mtgo-production --from-env-fi
 kubectl create secret generic mtgo-dotenv --namespace mtgo-production --from-file "dotenv=${ENV_FILE}"
 rm -f "$TMP_ENV"
 ```
+
+## Second Star
+
+Merlin (API), Encanto (web), and Postgres. Images are built by `MFJess/Second-Star` and published as `ghcr.io/mfjess/second-star-merlin` and `ghcr.io/mfjess/second-star-encanto`. ApplicationSet creates `second-star-production`.
+
+Create this host path on `dentrodoarmario` before the first sync, owned by the Postgres user in the image:
+
+```bash
+sudo mkdir -p /home/serverino/second-star-postgres
+sudo chown 999:999 /home/serverino/second-star-postgres
+```
+
+The app secret is not in git. When `merlin/.env` exists, create it from a machine that can reach the API server. The script keeps every key in that file, rewrites a `localhost` database host to the in-cluster service `db`, and fills deploy defaults that are missing (`API_PUBLIC_URL`, `FRONTEND_URL`, `DISCORD_REDIRECT_URI`, `COOKIE_SECURE=false`, `PRISMA_DB_PUSH=false`).
+
+```bash
+apps/second-star/scripts/create-secret.sh /path/to/Second-Star/merlin/.env
+```
+
+Private GHCR pulls also need `ghcr-pull` in the same namespace. Pass `GHCR_USER` and `GHCR_TOKEN` when running the script, or create the docker-registry secret yourself.
+
+LAN defaults, unless `.env` already sets them:
+
+| Key | Value |
+|---|---|
+| `FRONTEND_URL` | `http://192.168.1.101:8088` |
+| `API_PUBLIC_URL` | `http://192.168.1.101:3010` |
+| `DISCORD_REDIRECT_URI` | `http://192.168.1.101:3010/auth/discord/callback` |
+| `DATABASE_URL` host | `db:5432`, schema `scrooge` |
+
+`PRISMA_DB_PUSH=true` makes Merlin run `prisma db push` on startup. Use that once for an empty in-cluster database, then set it back to `false`. Leave it `false` when `DATABASE_URL` points at a database that already has data.
+
+Discord only accepts `http://localhost` redirect URIs without HTTPS. A LAN `http://192.168.1.101` callback has to be replaced with an HTTPS URL in `.env` and in the Discord application before login works from other machines.

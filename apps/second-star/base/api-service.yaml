@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: second-star-api
+spec:
+  type: ClusterIP
+  selector:
+    app: second-star-api
+  ports:
+    - port: 3010
+      targetPort: 3000
+      protocol: TCP
+  externalIPs:
+    - 192.168.1.101

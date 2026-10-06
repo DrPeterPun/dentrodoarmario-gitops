@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: second-star-api
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: second-star-api
+  template:
+    metadata:
+      labels:
+        app: second-star-api
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: second-star-env
+          command:
+            - sh
+            - -c
+            - until PGHOST=db pg_isready -h db -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do sleep 2; done
+      containers:
+        - name: api
+          image: local/second-star-merlin:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: second-star-env
+          ports:
+            - containerPort: 3000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"

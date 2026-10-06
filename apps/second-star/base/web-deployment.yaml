@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: second-star-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: second-star-web
+  template:
+    metadata:
+      labels:
+        app: second-star-web
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      containers:
+        - name: web
+          image: local/second-star-encanto:latest
+          imagePullPolicy: Always
+          env:
+            - name: API_PUBLIC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: second-star-env
+                  key: API_PUBLIC_URL
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "64Mi"
+            limits:
+              memory: "128Mi"

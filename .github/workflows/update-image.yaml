@@ -59,18 +59,47 @@ jobs:
             echo "newName=${{ inputs.newName }}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Capture image list
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IMAGES_JSON: ${{ toJson(github.event.client_payload.images) }}
+        run: |
+          if [ "$EVENT_NAME" = "repository_dispatch" ] && [ -n "${IMAGES_JSON}" ] && [ "${IMAGES_JSON}" != "null" ]; then
+            printf '%s' "$IMAGES_JSON" > /tmp/images.json
+          else
+            echo "null" > /tmp/images.json
+          fi
+
       - name: Set image in overlay
+        id: images
         working-directory: apps/${{ steps.inputs.outputs.app }}/overlays/${{ steps.inputs.outputs.environment }}
         run: |
-          image='${{ steps.inputs.outputs.image }}'
-          tag='${{ steps.inputs.outputs.tag }}'
-          new_name='${{ steps.inputs.outputs.newName }}'
-          if [ -n "$new_name" ]; then
-            kustomize edit set image "${image}=${new_name}:${tag}"
+          set_one() {
+            local image="$1" tag="$2" new_name="$3"
+            if [ -n "$new_name" ] && [ "$new_name" != "null" ]; then
+              kustomize edit set image "${image}=${new_name}:${tag}"
+            else
+              kustomize edit set image "${image}=${image}:${tag}"
+            fi
+          }
+          summary=""
+          if [ "$(cat /tmp/images.json)" != "null" ]; then
+            while IFS= read -r row; do
+              image="$(printf '%s' "$row" | jq -r '.image')"
+              tag="$(printf '%s' "$row" | jq -r '.tag')"
+              new_name="$(printf '%s' "$row" | jq -r '.newName // empty')"
+              set_one "$image" "$tag" "$new_name"
+              summary="${summary}${image}:${tag} "
+            done < <(jq -c '.[]' /tmp/images.json)
           else
-            kustomize edit set image "${image}=${image}:${tag}"
+            image='${{ steps.inputs.outputs.image }}'
+            tag='${{ steps.inputs.outputs.tag }}'
+            new_name='${{ steps.inputs.outputs.newName }}'
+            set_one "$image" "$tag" "$new_name"
+            summary="${image}:${tag}"
           fi
           kustomize build .
+          echo "summary=${summary}" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push
         run: |
@@ -81,5 +110,5 @@ jobs:
             echo "No image change"
             exit 0
           fi
-          git commit -m "deploy(${{ steps.inputs.outputs.app }}): ${{ steps.inputs.outputs.environment }} -> ${{ steps.inputs.outputs.image }}:${{ steps.inputs.outputs.tag }}"
+          git commit -m "deploy(${{ steps.inputs.outputs.app }}): ${{ steps.inputs.outputs.environment }} -> ${{ steps.images.outputs.summary }}"
           git push
