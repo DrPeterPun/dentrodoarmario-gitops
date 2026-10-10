@@ -19,13 +19,27 @@ patches:
     target:
       kind: Deployment
       name: second-star-web
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+    target:
+      kind: Deployment
+      name: second-star-api
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+    target:
+      kind: Deployment
+      name: second-star-web
 images:
   - name: local/second-star-merlin
-    newName: ghcr.io/mfjess/second-star-merlin
-    newTag: latest
+    newName: ghcr.io/drpeterpun/second-star-merlin
+    newTag: c80c880
   - name: local/second-star-encanto
-    newName: ghcr.io/mfjess/second-star-encanto
-    newTag: latest
+    newName: ghcr.io/drpeterpun/second-star-encanto
+    newTag: c80c880
   - name: postgres
     newName: postgres
     newTag: "16"
