@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: minecraft-disneybros
+  name: mc-router
 spec:
   type: ClusterIP
   selector:
-    app: minecraft-disneybros
+    app: mc-router
   ports:
     - port: 25565
       targetPort: 25565
       protocol: TCP
+  externalIPs:
+    - 192.168.1.101

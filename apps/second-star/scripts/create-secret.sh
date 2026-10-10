@@ -77,8 +77,8 @@ db_name = (parsed.path or "").lstrip("/").split("/")[0]
 data.setdefault("POSTGRES_USER", unquote(parsed.username or ""))
 data.setdefault("POSTGRES_PASSWORD", unquote(parsed.password or ""))
 data.setdefault("POSTGRES_DB", db_name)
-data.setdefault("API_PUBLIC_URL", "http://192.168.1.101:3010")
-data.setdefault("FRONTEND_URL", "http://192.168.1.101:8088")
+data.setdefault("API_PUBLIC_URL", "http://api.disneybros.pt")
+data.setdefault("FRONTEND_URL", "http://disneybros.pt")
 data.setdefault(
     "DISCORD_REDIRECT_URI",
     data["API_PUBLIC_URL"].rstrip("/") + "/auth/discord/callback",
