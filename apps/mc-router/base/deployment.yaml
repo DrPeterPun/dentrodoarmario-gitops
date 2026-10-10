@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-router
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mc-router
+  template:
+    metadata:
+      labels:
+        app: mc-router
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      containers:
+        - name: mc-router
+          image: itzg/mc-router:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            # No default backend: any other server address is refused.
+            # 192.168.1.101 keeps LAN and WireGuard clients working by IP.
+            - name: MAPPING
+              value: |
+                minecraft.pbpereira.pt=minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
+                192.168.1.101=minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
+          ports:
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 25565
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "32Mi"
+            limits:
+              memory: "128Mi"

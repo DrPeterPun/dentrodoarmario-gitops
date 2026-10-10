@@ -17,6 +17,9 @@ apps/mtgo/
 apps/second-star/
   base/                    # postgres, merlin API, encanto web
   overlays/production/
+apps/mc-router/
+  base/                    # Minecraft hostname router on 25565
+  overlays/production/
 apps/wireguard/
   base/                    # UDP 41820 VPN gateway
   overlays/production/
@@ -30,11 +33,18 @@ ApplicationSet creates one Application per overlay:
 | `apps/disney-bros/overlays/production` | `disney-bros-production` | `disney-bros-production` |
 | `apps/mtgo/overlays/production` | `mtgo-production` | `mtgo-production` |
 | `apps/second-star/overlays/production` | `second-star-production` | `second-star-production` |
+| `apps/mc-router/overlays/production` | `mc-router-production` | `mc-router-production` |
 | `apps/wireguard/overlays/production` | `wireguard-production` | `wireguard-production` |
 
 There is no staging overlay. Each world is bound to a host path on node `dentrodoarmario` (`/home/serverino/mc_batalhanaval` and `/home/serverino/mc_disneybros`). A second environment would need different disks and a different LAN port/IP.
 
-Batalha Naval is exposed on LAN `192.168.1.101:25566` (container still listens on `25565`). Disney Bros is `192.168.1.101:25565`. Second Star serves the web UI on `192.168.1.101:8088` and the API on `192.168.1.101:3010`. WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
+k3s already runs Traefik on `192.168.1.101:80` and `:443`. The Second Star Ingress is the only public website: `disneybros.pt` goes to Encanto and `api.disneybros.pt` goes to Merlin. Any other hostname on those ports gets Traefik's 404. The web and API still listen on the LAN at `192.168.1.101:8088` and `:3010`.
+
+MTGO web stays LAN-only at `192.168.1.101:8000`. It has no Ingress.
+
+mc-router owns `192.168.1.101:25565`. `minecraft.pbpereira.pt` and `192.168.1.101` reach Disney Bros. Any other address, including the public IP, is refused. Batalha Naval stays on LAN `192.168.1.101:25566` (container still listens on `25565`). WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
+
+On the router, forward TCP 80, TCP 443, and TCP 25565 to `192.168.1.101`, and keep UDP 41820. Do not forward 8000, 8088, 3010, or 25566; those are the in-network ports. `disneybros.pt` and `api.disneybros.pt` both need DNS to the same address. The site and API cannot share one hostname: Encanto's pages (`/movies`, `/books`, and the rest) use the same paths as Merlin.
 
 ## Bootstrap
 
@@ -73,6 +83,7 @@ kubectl kustomize apps/disney-bros/overlays/production
 kubectl kustomize apps/mtgo/overlays/production
 kubectl kustomize apps/wireguard/overlays/production
 kubectl kustomize apps/second-star/overlays/production
+kubectl kustomize apps/mc-router/overlays/production
 ```
 
 ## MTGO stack
@@ -131,15 +142,17 @@ apps/second-star/scripts/create-secret.sh /path/to/Second-Star/merlin/.env
 
 Private GHCR pulls also need `ghcr-pull` in the same namespace. Pass `GHCR_USER` and `GHCR_TOKEN` when running the script, or create the docker-registry secret yourself.
 
-LAN defaults, unless `.env` already sets them:
+Defaults, unless `.env` already sets them:
 
 | Key | Value |
 |---|---|
-| `FRONTEND_URL` | `http://192.168.1.101:8088` |
-| `API_PUBLIC_URL` | `http://192.168.1.101:3010` |
-| `DISCORD_REDIRECT_URI` | `http://192.168.1.101:3010/auth/discord/callback` |
+| `FRONTEND_URL` | `http://disneybros.pt` |
+| `API_PUBLIC_URL` | `http://api.disneybros.pt` |
+| `DISCORD_REDIRECT_URI` | `http://api.disneybros.pt/auth/discord/callback` |
 | `DATABASE_URL` host | `db:5432`, schema `scrooge` |
 
 `PRISMA_DB_PUSH=true` makes Merlin run `prisma db push` on startup. Use that once for an empty in-cluster database, then set it back to `false`. Leave it `false` when `DATABASE_URL` points at a database that already has data.
 
-Discord only accepts `http://localhost` redirect URIs without HTTPS. A LAN `http://192.168.1.101` callback has to be replaced with an HTTPS URL in `.env` and in the Discord application before login works from other machines.
+The running secret is not updated by a git merge. If `merlin/.env` still has the LAN URLs, change `FRONTEND_URL`, `API_PUBLIC_URL`, and `DISCORD_REDIRECT_URI` there and run the script again, then restart the web and API pods so Encanto rewrites `config.js`. Keys already present in the env file are kept.
+
+Discord only accepts `http://localhost` redirect URIs without HTTPS. `http://api.disneybros.pt/auth/discord/callback` has to be replaced with an HTTPS URL in `.env` and in the Discord application before login works from the public site.

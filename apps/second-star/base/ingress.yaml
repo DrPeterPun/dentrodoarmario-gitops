@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: second-star
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: disneybros.pt
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: second-star-web
+                port:
+                  number: 8088
+    - host: api.disneybros.pt
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: second-star-api
+                port:
+                  number: 3010
