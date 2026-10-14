@@ -77,12 +77,45 @@ db_name = (parsed.path or "").lstrip("/").split("/")[0]
 data.setdefault("POSTGRES_USER", unquote(parsed.username or ""))
 data.setdefault("POSTGRES_PASSWORD", unquote(parsed.password or ""))
 data.setdefault("POSTGRES_DB", db_name)
-data.setdefault("API_PUBLIC_URL", "http://secondstar.pt/api")
-data.setdefault("FRONTEND_URL", "http://secondstar.pt")
-data.setdefault(
-    "DISCORD_REDIRECT_URI",
-    data["API_PUBLIC_URL"].rstrip("/") + "/auth/discord/callback",
+PUBLIC_FRONTEND = "https://secondstart.pt"
+PUBLIC_API = "https://secondstart.pt/api"
+PUBLIC_REDIRECT = PUBLIC_API + "/auth/discord/callback"
+STALE_FRONTENDS = {
+    "http://secondstar.pt",
+    "https://secondstar.pt",
+    "http://secondstart.pt",
+    "http://disneybros.pt",
+    "https://disneybros.pt",
+    "http://192.168.1.101:8088",
+}
+STALE_APIS = {
+    "http://secondstar.pt/api",
+    "https://secondstar.pt/api",
+    "http://secondstart.pt/api",
+    "http://api.disneybros.pt",
+    "https://api.disneybros.pt",
+    "http://api.secondstar.pt",
+    "http://192.168.1.101:3010",
+}
+STALE_REDIRECTS = {api.rstrip("/") + "/auth/discord/callback" for api in STALE_APIS}
+STALE_REDIRECTS.add("http://192.168.1.101:3010/auth/discord/callback")
+
+def public_or_existing(value, public, stale):
+    if not value or value.rstrip("/") in stale:
+        return public
+    return value
+
+data["FRONTEND_URL"] = public_or_existing(
+    data.get("FRONTEND_URL", ""), PUBLIC_FRONTEND, STALE_FRONTENDS
 )
+data["API_PUBLIC_URL"] = public_or_existing(
+    data.get("API_PUBLIC_URL", ""), PUBLIC_API, STALE_APIS
+)
+data["DISCORD_REDIRECT_URI"] = public_or_existing(
+    data.get("DISCORD_REDIRECT_URI", ""), PUBLIC_REDIRECT, STALE_REDIRECTS
+)
+if data["FRONTEND_URL"].startswith("https://") and data.get("COOKIE_SECURE", "false") != "true":
+    data["COOKIE_SECURE"] = "true"
 data.setdefault("COOKIE_SECURE", "false")
 data.setdefault("NODE_ENV", "production")
 data.setdefault("PORT", "3000")

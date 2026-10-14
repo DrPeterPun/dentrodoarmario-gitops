@@ -10,6 +10,7 @@ resources:
   - web-deployment.yaml
   - web-service.yaml
   - web-nginx-configmap.yaml
+  - redirect-https.yaml
   - ingress.yaml
 images:
   - name: postgres
