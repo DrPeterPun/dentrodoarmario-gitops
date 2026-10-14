@@ -5,3 +5,5 @@ resources:
   - appproject.yaml
   - applicationset.yaml
   - storageclass.yaml
+  - cert-manager-app.yaml
+  - cert-manager-issuer-app.yaml
