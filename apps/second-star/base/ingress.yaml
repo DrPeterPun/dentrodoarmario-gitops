@@ -10,10 +10,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - secondstart.pt
-      secretName: secondstart-tls
+        - secondstar.pt
+      secretName: secondstar-tls
   rules:
-    - host: secondstart.pt
+    - host: secondstar.pt
       http:
         paths:
           - path: /

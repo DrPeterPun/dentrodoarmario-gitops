@@ -77,21 +77,21 @@ db_name = (parsed.path or "").lstrip("/").split("/")[0]
 data.setdefault("POSTGRES_USER", unquote(parsed.username or ""))
 data.setdefault("POSTGRES_PASSWORD", unquote(parsed.password or ""))
 data.setdefault("POSTGRES_DB", db_name)
-PUBLIC_FRONTEND = "https://secondstart.pt"
-PUBLIC_API = "https://secondstart.pt/api"
+PUBLIC_FRONTEND = "https://secondstar.pt"
+PUBLIC_API = "https://secondstar.pt/api"
 PUBLIC_REDIRECT = PUBLIC_API + "/auth/discord/callback"
 STALE_FRONTENDS = {
     "http://secondstar.pt",
-    "https://secondstar.pt",
     "http://secondstart.pt",
+    "https://secondstart.pt",
     "http://disneybros.pt",
     "https://disneybros.pt",
     "http://192.168.1.101:8088",
 }
 STALE_APIS = {
     "http://secondstar.pt/api",
-    "https://secondstar.pt/api",
     "http://secondstart.pt/api",
+    "https://secondstart.pt/api",
     "http://api.disneybros.pt",
     "https://api.disneybros.pt",
     "http://api.secondstar.pt",
