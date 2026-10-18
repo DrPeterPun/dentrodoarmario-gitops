@@ -1,45 +1,45 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../base
+- ../../base
 patches:
-  - patch: |-
-      - op: add
-        path: /spec/template/spec/imagePullSecrets
-        value:
-          - name: ghcr-pull
-    target:
-      kind: Deployment
-      name: second-star-api
-  - patch: |-
-      - op: add
-        path: /spec/template/spec/imagePullSecrets
-        value:
-          - name: ghcr-pull
-    target:
-      kind: Deployment
-      name: second-star-web
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-    target:
-      kind: Deployment
-      name: second-star-api
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/imagePullPolicy
-        value: IfNotPresent
-    target:
-      kind: Deployment
-      name: second-star-web
+- patch: |-
+    - op: add
+      path: /spec/template/spec/imagePullSecrets
+      value:
+        - name: ghcr-pull
+  target:
+    kind: Deployment
+    name: second-star-api
+- patch: |-
+    - op: add
+      path: /spec/template/spec/imagePullSecrets
+      value:
+        - name: ghcr-pull
+  target:
+    kind: Deployment
+    name: second-star-web
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+  target:
+    kind: Deployment
+    name: second-star-api
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: IfNotPresent
+  target:
+    kind: Deployment
+    name: second-star-web
 images:
-  - name: local/second-star-merlin
-    newName: ghcr.io/drpeterpun/second-star-merlin
-    newTag: c80c880
-  - name: local/second-star-encanto
-    newName: ghcr.io/drpeterpun/second-star-encanto
-    newTag: c80c880
-  - name: postgres
-    newName: postgres
-    newTag: "16"
+- name: local/second-star-encanto
+  newName: ghcr.io/mfjess/second-star-encanto
+  newTag: c7e6308c8cdd6ed2de4e6e96f49c10378a5ba689
+- name: local/second-star-merlin
+  newName: ghcr.io/mfjess/second-star-merlin
+  newTag: c7e6308c8cdd6ed2de4e6e96f49c10378a5ba689
+- name: postgres
+  newName: postgres
+  newTag: "16"
