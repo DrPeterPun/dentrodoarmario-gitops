@@ -36,10 +36,10 @@ patches:
 images:
 - name: local/second-star-encanto
   newName: ghcr.io/mfjess/second-star-encanto
-  newTag: 77cbfd7b6fcc56883cc6370176856fe473a3c8f4
+  newTag: fc8cb54cd0d919e98529ae24fb25c037f7994bc7
 - name: local/second-star-merlin
   newName: ghcr.io/mfjess/second-star-merlin
-  newTag: 77cbfd7b6fcc56883cc6370176856fe473a3c8f4
+  newTag: fc8cb54cd0d919e98529ae24fb25c037f7994bc7
 - name: postgres
   newName: postgres
   newTag: "16"
