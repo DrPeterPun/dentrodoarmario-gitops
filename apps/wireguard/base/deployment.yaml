@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: wireguard
 spec:
-  replicas: 0
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -33,7 +33,7 @@ spec:
             - name: SERVERPORT
               value: "41820"
             - name: PEERS
-              value: laptop,phone
+              value: laptop,phone,jess
             - name: PEERDNS
               value: auto
             - name: INTERNAL_SUBNET
