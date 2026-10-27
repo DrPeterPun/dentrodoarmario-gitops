@@ -33,7 +33,7 @@ spec:
             - name: SERVERPORT
               value: "41820"
             - name: PEERS
-              value: laptop,phone
+              value: laptop,phone,jess
             - name: PEERDNS
               value: auto
             - name: INTERNAL_SUBNET
