@@ -19,12 +19,19 @@ spec:
           image: itzg/mc-router:latest
           imagePullPolicy: IfNotPresent
           env:
-            # No default backend: any other server address is refused.
-            # 192.168.1.101 keeps LAN and WireGuard clients working by IP.
+            # Clients often send the CNAME (mcppereira.ddns.net) or the public
+            # IP in the handshake. DEFAULT catches those, including after DDNS
+            # changes. The image default rate limit is 1 new connection per
+            # second, which makes the server list time out and look offline.
             - name: MAPPING
               value: |
                 minecraft.pbpereira.pt=minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
+                mcppereira.ddns.net=minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
                 192.168.1.101=minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
+            - name: DEFAULT
+              value: minecraft-disneybros.disney-bros-production.svc.cluster.local:25565
+            - name: CONNECTION_RATE_LIMIT
+              value: "100"
           ports:
             - name: minecraft
               containerPort: 25565
