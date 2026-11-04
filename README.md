@@ -42,7 +42,7 @@ k3s already runs Traefik on `192.168.1.101:80` and `:443`. The Second Star Ingre
 
 MTGO web stays LAN-only at `192.168.1.101:8000`. It has no Ingress.
 
-mc-router owns `192.168.1.101:25565`. `minecraft.pbpereira.pt` and `192.168.1.101` reach Disney Bros. Any other address, including the public IP, is refused. Batalha Naval stays on LAN `192.168.1.101:25566` (container still listens on `25565`). WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
+mc-router owns `192.168.1.101:25565`. `minecraft.pbpereira.pt`, its DDNS name `mcppereira.ddns.net`, `192.168.1.101`, and any other handshake address (including the public IP) reach Disney Bros. Batalha Naval stays on LAN `192.168.1.101:25566` (container still listens on `25565`). WireGuard listens on `192.168.1.101:41820/udp` (`minecraft.pbpereira.pt:41820` from the Internet). See [apps/wireguard/README.md](apps/wireguard/README.md).
 
 On the router, forward TCP 80, TCP 443, and TCP 25565 to `192.168.1.101`, and keep UDP 41820. Do not forward 8000, 8088, 3010, or 25566; those are the in-network ports. `secondstar.pt` needs DNS to that address. Port 80 has to stay open so Let's Encrypt can renew the certificate. The public site and API share that hostname: the browser calls `https://secondstar.pt/api/…`, and Encanto forwards those requests to Merlin without the `/api` prefix.
 

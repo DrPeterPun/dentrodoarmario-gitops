@@ -27,7 +27,11 @@ spec:
             - name: TYPE
               value: "FABRIC"
             - name: MEMORY
-              value: "6G"
+              value: "5G"
+            - name: USE_AIKAR_FLAGS
+              value: "true"
+            - name: PAUSE_WHEN_EMPTY_SECONDS
+              value: "0"
             - name: VERSION
               value: "26.1.2"
             - name: MOTD
