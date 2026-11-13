@@ -30,11 +30,15 @@ spec:
         - name: web
           image: local/meta-stats:latest
           imagePullPolicy: IfNotPresent
-          command: ["uv", "run", "uvicorn", "app.web.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          command: ["uv", "run", "uvicorn", "app.web.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
           envFrom:
             - secretRef:
                 name: mtgo-env
           env:
+            - name: DISCORD_CLIENT_ID
+              value: "1356634952917061804"
+            - name: DISCORD_REDIRECT_URI
+              value: "https://mcppereira.ddns.net/auth/discord/callback"
             - name: SCHEDULER_TIMEZONE
               value: UTC
             - name: PGHOST

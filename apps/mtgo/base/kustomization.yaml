@@ -18,6 +18,8 @@ resources:
   - bot-deployment.yaml
   - web-deployment.yaml
   - web-service.yaml
+  - redirect-https.yaml
+  - ingress.yaml
   - scheduler-deployment.yaml
 configMapGenerator:
   - name: mtgo-schema
