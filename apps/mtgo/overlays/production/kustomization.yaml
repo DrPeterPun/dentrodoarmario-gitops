@@ -16,7 +16,7 @@ images:
   newTag: 79025abecb2da7dbbf5f9abf0912108099d149c5
 - name: local/mtgosdk
   newName: ghcr.io/mtgometastats/mtgo-bot
-  newTag: 742e427779bf7be61892c46005be099f63484b31
+  newTag: 87f44f84efdec89ac118a58845307363cd970062
 - name: postgres
   newName: postgres
   newTag: "16"
