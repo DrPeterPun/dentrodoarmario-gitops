@@ -10,7 +10,7 @@ Argo CD deploys this overlay as Application `wireguard-production` in namespace 
 | UDP WAN (clients) | `minecraft.pbpereira.pt:41820` (router maps 41820 → 41820) |
 | Tunnel subnet | `10.13.13.0/24` |
 | Split tunnel | `10.13.13.0/24` and `192.168.1.0/24` (not all Internet traffic) |
-| Seeded peers | `laptop`, `phone` |
+| Seeded peers | `laptop`, `phone`, `jess` |
 | Config on disk | `/home/serverino/wireguard` (create this directory before the first sync) |
 
 Keys and peer configs are generated on first start and stored on the local PV. They are **not** committed to Git.
