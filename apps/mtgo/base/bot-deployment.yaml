@@ -39,6 +39,16 @@ spec:
             - name: fetch-script
               mountPath: /scripts
               readOnly: true
+        # Wine refuses a prefix whose directory is owned by root. fsGroup sets
+        # the group only, so the mount point stays root:wine.
+        - name: own-wine-prefix
+          image: local/mtgosdk:headless
+          command: ["chown", "1000:1000", "/var/lib/mtgo-wine"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: wine
+              mountPath: /var/lib/mtgo-wine
       containers:
         - name: mtgobot
           image: local/mtgosdk:headless
