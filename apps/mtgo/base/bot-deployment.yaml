@@ -77,6 +77,8 @@ spec:
               mountPath: /dev/shm
             - name: alive-log
               mountPath: /var/log/mtgo
+            - name: wine
+              mountPath: /var/lib/mtgo-wine
           securityContext:
             privileged: true
           resources:
@@ -113,6 +115,9 @@ spec:
         - name: alive-log
           persistentVolumeClaim:
             claimName: mtgo-logs-pvc
+        - name: wine
+          persistentVolumeClaim:
+            claimName: mtgo-wine-pvc
         - name: fetch-script
           configMap:
             name: mtgo-fetch-sdk
