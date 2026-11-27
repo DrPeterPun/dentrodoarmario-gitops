@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtgo-verify
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mtgo-verify
+  template:
+    metadata:
+      labels:
+        app: mtgo-verify
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/mtgobot: unconfined
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          command:
+            - sh
+            - -c
+            - until PGHOST=db pg_isready -h db -U "$PGUSER" -d "$PGDATABASE"; do sleep 2; done
+        - name: fetch-mtgosdk
+          image: python:3.12-alpine
+          command: ["python", "/scripts/fetch-mtgosdk.py"]
+          volumeMounts:
+            - name: sdk
+              mountPath: /MTGOSDK
+            - name: fetch-script
+              mountPath: /scripts
+              readOnly: true
+        - name: own-wine-prefix
+          image: local/mtgosdk:headless
+          command: ["chown", "1000:1000", "/var/lib/mtgo-wine"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: wine
+              mountPath: /var/lib/mtgo-wine
+      containers:
+        - name: mtgobot
+          image: local/mtgosdk:headless
+          imagePullPolicy: IfNotPresent
+          workingDir: /workspace
+          envFrom:
+            - secretRef:
+                name: mtgo-env
+          env:
+            - name: MTGOSDK_PATH
+              value: /MTGOSDK
+            - name: DISPLAY
+              value: ":99"
+            - name: WINEDEBUG
+              value: "-all"
+            - name: ALSA_LOG_LEVEL
+              value: "0"
+            - name: TZ
+              value: Europe/Lisbon
+            - name: PGHOST
+              value: db
+            - name: MTGO_HEADLESS
+              value: "true"
+            - name: MTGO_ROLE
+              value: verify
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mtgo-verify-dotenv
+                  key: USERNAME
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mtgo-verify-dotenv
+                  key: PASSWORD
+            - name: RESOLUTION
+              value: 1280x1024x24
+            - name: MTGO_ALIVE_LOG
+              value: /var/log/mtgo/mtgo-alive.log
+          volumeMounts:
+            - name: sdk
+              mountPath: /MTGOSDK
+            - name: dotenv
+              mountPath: /workspace/src/.env
+              subPath: dotenv
+              readOnly: true
+            - name: dshm
+              mountPath: /dev/shm
+            - name: alive-log
+              mountPath: /var/log/mtgo
+            - name: wine
+              mountPath: /var/lib/mtgo-wine
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              memory: "1Gi"
+            limits:
+              memory: "8Gi"
+          startupProbe:
+            exec:
+              command: ["bash", "/workspace/scripts/mtgo-alive.sh"]
+            periodSeconds: 300
+            timeoutSeconds: 30
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["bash", "/workspace/scripts/mtgo-alive.sh"]
+            periodSeconds: 300
+            timeoutSeconds: 30
+            failureThreshold: 2
+      volumes:
+        - name: sdk
+          persistentVolumeClaim:
+            claimName: mtgo-sdk-pvc
+        - name: dotenv
+          secret:
+            secretName: mtgo-verify-dotenv
+            items:
+              - key: dotenv
+                path: dotenv
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+        - name: alive-log
+          emptyDir: {}
+        - name: wine
+          persistentVolumeClaim:
+            claimName: mtgo-wine-verify-pvc
+        - name: fetch-script
+          configMap:
+            name: mtgo-fetch-sdk
+            defaultMode: 0755
