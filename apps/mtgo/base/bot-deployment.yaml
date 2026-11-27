@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: mtgo-bot
 spec:
-  replicas: 1
+  # One MTGO client fits on this node. mtgo-verify sends the whispers.
+  # This process also polls that queue, so leave it at 0 while the verifier runs.
+  replicas: 0
   strategy:
     type: Recreate
   selector:
