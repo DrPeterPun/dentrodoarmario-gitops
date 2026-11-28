@@ -17,6 +17,9 @@ apps/mtgo/
 apps/second-star/
   base/                    # postgres, merlin API, encanto web
   overlays/production/
+apps/mickey2/
+  base/                    # Discord bot
+  overlays/production/
 apps/mc-router/
   base/                    # Minecraft hostname router on 25565
   overlays/production/
@@ -33,6 +36,7 @@ ApplicationSet creates one Application per overlay:
 | `apps/disney-bros/overlays/production` | `disney-bros-production` | `disney-bros-production` |
 | `apps/mtgo/overlays/production` | `mtgo-production` | `mtgo-production` |
 | `apps/second-star/overlays/production` | `second-star-production` | `second-star-production` |
+| `apps/mickey2/overlays/production` | `mickey2-production` | `mickey2-production` |
 | `apps/mc-router/overlays/production` | `mc-router-production` | `mc-router-production` |
 | `apps/wireguard/overlays/production` | `wireguard-production` | `wireguard-production` |
 
@@ -83,6 +87,7 @@ kubectl kustomize apps/disney-bros/overlays/production
 kubectl kustomize apps/mtgo/overlays/production
 kubectl kustomize apps/wireguard/overlays/production
 kubectl kustomize apps/second-star/overlays/production
+kubectl kustomize apps/mickey2/overlays/production
 kubectl kustomize apps/mc-router/overlays/production
 ```
 
@@ -157,3 +162,19 @@ Defaults, unless `.env` already sets them:
 The running secret is not updated by a git merge. Run the script again after changing those URLs, then restart the web and API pods so Encanto rewrites `config.js`.
 
 Discord login uses `https://secondstar.pt/api/auth/discord/callback`. Add that exact redirect in the Discord application. Discord rejects any other `http://` redirect except `localhost`. The certificate has to be ready, and `secondstar.pt` has to resolve to this cluster, before that login can finish.
+
+## Mickey
+
+Discord bot from `MFJess/Mickey2`. The image `ghcr.io/mfjess/mickey2` is built on push to `main`, and that workflow commits the tag into `apps/mickey2/overlays/production`, the same way Second Star rolls its images. ApplicationSet creates `mickey2-production`.
+
+The bot has no Service or Ingress. It opens a websocket to Discord and calls Merlin inside the cluster. There is no disk: community data stays in Merlin, and the phrases and images are in the image.
+
+The token is not in git. When `Mickey2/.env` exists, create the Secret from a machine that can reach the API server. A localhost URL, the LAN API port, or `secondstar.pt/api` is rewritten to the in-cluster Service, because the bot calls Merlin paths at the root (`/users`, `/hogwarts`, …) and Encanto is what adds `/api`. Any other explicit `MERLIN_URL` is kept. `EXCEL_MARATONA` and `MINECRAFT_IP` are copied when they are set.
+
+```bash
+apps/mickey2/scripts/create-secret.sh /path/to/Mickey2/.env
+```
+
+Private GHCR pulls also need `ghcr-pull` in `mickey2-production`. Pass `GHCR_USER` and `GHCR_TOKEN` when running the script, or create the docker-registry secret yourself.
+
+The Mickey2 repository needs a `GITOPS_DEPLOY_KEY` secret, the same deploy key Second Star uses, so its workflow can push the image tag to this repository. Merge this app before that workflow runs: the overlay path has to exist on `master`.
