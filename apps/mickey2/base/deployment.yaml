@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mickey2
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mickey2
+  template:
+    metadata:
+      labels:
+        app: mickey2
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: dentrodoarmario
+      containers:
+        - name: bot
+          image: local/mickey2:latest
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: mickey2-env
+          env:
+            - name: TZ
+              value: Europe/Lisbon
+          resources:
+            requests:
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
